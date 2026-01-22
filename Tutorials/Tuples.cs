@@ -1,6 +1,3 @@
-using System.Net.Http.Headers;
-using System.Security.Principal;
-
 var pt = (X: 1, Y :2);
 
 var slope = (double)pt.Y / (double)pt.X;
@@ -38,4 +35,5 @@ Console.WriteLine($"The slope of {pt4} is {slopeResult}.");
 public record struct Point(int X, int Y)
 {
     public double slope() => (double)Y / (double)X; 
+
 }
