@@ -29,13 +29,11 @@ string? line;
 while ((line = reader.ReadLine()) is not null)
 {
     if (string.IsNullOrWhiteSpace(line)) continue;
-    // Split the line based on comma delimiter and trim each part
     string[] parts = line.Split(',');
 
     string? transactionType = parts[0]?.Trim();
     if (double.TryParse(parts[1].Trim(), out double amount))
     {
-        // Update the balance based on transaction type
         if (transactionType?.ToUpper() is "DEPOSIT")
             currentBalance += amount;
         else if (transactionType?.ToUpper() is "WITHDRAWAL")
@@ -56,42 +54,62 @@ static IEnumerable<(TransactionType type, double amount)> TransactionRecords(str
         string? transactionType = parts[0]?.Trim();
         if (double.TryParse(parts[1].Trim(), out double amount))
         {
-            // Update the balance based on transaction type
             if (transactionType?.ToUpper() is "DEPOSIT")
                 yield return (TransactionType.Deposit, amount);
             else if (transactionType?.ToUpper() is "WITHDRAWAL")
                 yield return (TransactionType.Withdrawal, amount);
         }
-        else {
-        yield return (TransactionType.Invalid, 0.0);
+        else
+        {
+            yield return (TransactionType.Invalid, 0.0);
         }
     }
 }
-
 
 currentBalance = 0.0;
 
 foreach (var transaction in TransactionRecords(bankRecords))
 {
-        currentBalance += transaction switch
+    currentBalance += transaction switch
     {
         (TransactionType.Deposit, var amount) => amount,
         (TransactionType.Withdrawal, var amount) => -amount,
-        _ => 0.0,
     };
+
     Console.WriteLine($"{transaction.type} => Parsed Amount: {transaction.amount}, New Balance: {currentBalance}");
 }
 
+static IEnumerable<object?> TransactionRecordType(string inputText)
+{
+    var reader = new StringReader(inputText);
+    string? line;
+    while ((line = reader.ReadLine()) is not null)
+    {
+        string[] parts = line.Split(',');
 
-int n = GetNumber();
+        string? transactionType = parts[0]?.Trim();
+        if (double.TryParse(parts[1].Trim(), out double amount))
+        {
+            if (transactionType?.ToUpper() is "DEPOSIT")
+                yield return new Deposit(amount, parts[2]);
+            else if (transactionType?.ToUpper() is "WITHDRAWAL")
+                yield return new Withdrawal(amount, parts[2]);
+        }
+    }
+}
 
-if (n < 20)
-    Console.WriteLine("n is less than 20");
-else if (n < 10)
-    Console.WriteLine("n is less than 10"); // unreachable
-else
-    Console.WriteLine("n is greater than 20");
+currentBalance = 0.0;
 
+foreach (var transaction in TransactionRecordType(bankRecords))
+{
+    currentBalance += transaction switch
+    {
+        Deposit d => d.Amount,
+        Withdrawal w => -w.Amount,
+        _ => 0.0,
+    };
+    Console.WriteLine($" {transaction} => New Balance: {currentBalance}");
+}
 
 public enum TransactionType
 {
@@ -99,3 +117,6 @@ public enum TransactionType
     Withdrawal,
     Invalid
 }
+
+public record Deposit(double Amount, string description);
+public record Withdrawal(double Amount, string description);
